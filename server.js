@@ -26,14 +26,13 @@ const defaultContent = {
   heroImage: '',
   logoImage: '',
 
-  // YouTube / video darslar
+  // YouTube / video darslar (cheksiz miqdorda qo'shsa bo'ladi)
   youtubeChannel: 'https://youtube.com/@topmuslimtraders',
-  youtube1Title: "SMC asoslari: Order Block va Liquidity",
-  youtube1Url: 'https://youtube.com/@topmuslimtraders',
-  youtube2Title: 'ICT tahlil: Market Structure tushunchasi',
-  youtube2Url: 'https://youtube.com/@topmuslimtraders',
-  youtube3Title: 'Risk-menedjment: Halol pozitsiya hajmi',
-  youtube3Url: 'https://youtube.com/@topmuslimtraders',
+  videos: [
+    { title: "SMC asoslari: Order Block va Liquidity", url: 'https://youtube.com/@topmuslimtraders' },
+    { title: 'ICT tahlil: Market Structure tushunchasi', url: 'https://youtube.com/@topmuslimtraders' },
+    { title: 'Risk-menedjment: Halol pozitsiya hajmi', url: 'https://youtube.com/@topmuslimtraders' }
+  ],
 
   // Kripto halolmi?
   halalTitle: 'Kripto Savdosi Islom Nuqtai Nazaridan Halolmi?',
@@ -42,22 +41,42 @@ const defaultContent = {
   halalPoint2: 'Riboga asoslangan marja va fyuchers savdosi yo\u2019q',
   halalPoint3: "Ortiqcha g'arar (noaniqlik)dan saqlanish va intizomli risk boshqaruvi",
 
-  // PDF kutubxona
-  pdf1Title: 'SMC & ICT Boshlang\u2019ich Qo\u2019llanma',
-  pdf1Desc: "Smart Money Concepts va ICT tahlilining asosiy tushunchalari haqida qisqa qo'llanma.",
-  pdf1Url: '',
-  pdf2Title: "Risk-menedjment Yo'riqnomasi",
-  pdf2Desc: "Halol va intizomli risk boshqaruvi bo'yicha amaliy maslahatlar.",
-  pdf2Url: '',
-  pdf3Title: "Halol Savdo Qo'llanmasi",
-  pdf3Desc: 'Spot savdoda shariat tamoyillariga rioya qilish bo\u2019yicha asosiy qoidalar.',
-  pdf3Url: ''
+  // PDF kutubxona (cheksiz miqdorda qo'shsa bo'ladi)
+  pdfs: [
+    { title: 'SMC & ICT Boshlang\u2019ich Qo\u2019llanma', desc: "Smart Money Concepts va ICT tahlilining asosiy tushunchalari haqida qisqa qo'llanma.", url: '' },
+    { title: "Risk-menedjment Yo'riqnomasi", desc: "Halol va intizomli risk boshqaruvi bo'yicha amaliy maslahatlar.", url: '' },
+    { title: "Halol Savdo Qo'llanmasi", desc: 'Spot savdoda shariat tamoyillariga rioya qilish bo\u2019yicha asosiy qoidalar.', url: '' }
+  ]
 };
 
+function migrateOldFields(c) {
+  // Eski (fixed) youtube1..3 / pdf1..3 formatidan yangi arrayga o'tkazish
+  if (!Array.isArray(c.videos)) {
+    const vids = [];
+    for (let i = 1; i <= 10; i++) {
+      const t = c['youtube' + i + 'Title'];
+      const u = c['youtube' + i + 'Url'];
+      if (t || u) vids.push({ title: t || '', url: u || '' });
+    }
+    c.videos = vids.length ? vids : defaultContent.videos;
+  }
+  if (!Array.isArray(c.pdfs)) {
+    const pdfs = [];
+    for (let i = 1; i <= 10; i++) {
+      const t = c['pdf' + i + 'Title'];
+      const d = c['pdf' + i + 'Desc'];
+      const u = c['pdf' + i + 'Url'];
+      if (t || d || u) pdfs.push({ title: t || '', desc: d || '', url: u || '' });
+    }
+    c.pdfs = pdfs.length ? pdfs : defaultContent.pdfs;
+  }
+  return c;
+}
 function loadContent() {
   try {
     const raw = fs.readFileSync(CONTENT_FILE, 'utf8');
-    return Object.assign({}, defaultContent, JSON.parse(raw));
+    const merged = Object.assign({}, defaultContent, JSON.parse(raw));
+    return migrateOldFields(merged);
   } catch (e) {
     return Object.assign({}, defaultContent);
   }
@@ -252,18 +271,11 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background-color:#06080D;color:#
       <p class="text-slate-400 text-sm mt-3">SMC, ICT va risk-menedjment bo'yicha bepul video darslarimiz</p>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <a href="${esc(c.youtube1Url)}" target="_blank" class="glass-card glass-card-hover rounded-2xl overflow-hidden border border-cardBorder block">
+      ${(c.videos || []).map(v => `
+      <a href="${esc(v.url)}" target="_blank" class="glass-card glass-card-hover rounded-2xl overflow-hidden border border-cardBorder block">
         <div class="aspect-video bg-darkBg/90 flex items-center justify-center border-b border-cardBorder"><i class="fa-brands fa-youtube text-5xl text-red-500/70"></i></div>
-        <div class="p-4"><div class="text-sm font-bold text-white">${esc(c.youtube1Title)}</div></div>
-      </a>
-      <a href="${esc(c.youtube2Url)}" target="_blank" class="glass-card glass-card-hover rounded-2xl overflow-hidden border border-cardBorder block">
-        <div class="aspect-video bg-darkBg/90 flex items-center justify-center border-b border-cardBorder"><i class="fa-brands fa-youtube text-5xl text-red-500/70"></i></div>
-        <div class="p-4"><div class="text-sm font-bold text-white">${esc(c.youtube2Title)}</div></div>
-      </a>
-      <a href="${esc(c.youtube3Url)}" target="_blank" class="glass-card glass-card-hover rounded-2xl overflow-hidden border border-cardBorder block">
-        <div class="aspect-video bg-darkBg/90 flex items-center justify-center border-b border-cardBorder"><i class="fa-brands fa-youtube text-5xl text-red-500/70"></i></div>
-        <div class="p-4"><div class="text-sm font-bold text-white">${esc(c.youtube3Title)}</div></div>
-      </a>
+        <div class="p-4"><div class="text-sm font-bold text-white">${esc(v.title)}</div></div>
+      </a>`).join('')}
     </div>
     <div class="text-center mt-8">
       <a href="${esc(c.youtubeChannel)}" target="_blank" class="inline-flex items-center space-x-2 text-red-400 font-bold text-sm hover:text-red-300">
@@ -336,24 +348,13 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background-color:#06080D;color:#
       <h2 class="text-2xl sm:text-4xl font-black text-white mt-2">Bepul O'quv Materiallari</h2>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      ${(c.pdfs || []).map(p => `
       <div class="glass-card glass-card-hover rounded-2xl p-6 border border-cardBorder flex flex-col">
         <i class="fa-solid fa-file-pdf text-3xl text-accentPurple mb-3"></i>
-        <div class="text-sm font-bold text-white">${esc(c.pdf1Title)}</div>
-        <p class="text-xs text-slate-400 mt-2 flex-grow">${esc(c.pdf1Desc)}</p>
-        ${c.pdf1Url ? `<a href="${esc(c.pdf1Url)}" target="_blank" class="mt-4 inline-flex items-center justify-center text-xs font-bold bg-accentPurple/15 text-accentPurple px-4 py-2.5 rounded-lg">Yuklab olish</a>` : `<span class="mt-4 inline-flex items-center justify-center text-xs font-bold bg-cardBorder/40 text-slate-500 px-4 py-2.5 rounded-lg">Tez orada</span>`}
-      </div>
-      <div class="glass-card glass-card-hover rounded-2xl p-6 border border-cardBorder flex flex-col">
-        <i class="fa-solid fa-file-pdf text-3xl text-accentPurple mb-3"></i>
-        <div class="text-sm font-bold text-white">${esc(c.pdf2Title)}</div>
-        <p class="text-xs text-slate-400 mt-2 flex-grow">${esc(c.pdf2Desc)}</p>
-        ${c.pdf2Url ? `<a href="${esc(c.pdf2Url)}" target="_blank" class="mt-4 inline-flex items-center justify-center text-xs font-bold bg-accentPurple/15 text-accentPurple px-4 py-2.5 rounded-lg">Yuklab olish</a>` : `<span class="mt-4 inline-flex items-center justify-center text-xs font-bold bg-cardBorder/40 text-slate-500 px-4 py-2.5 rounded-lg">Tez orada</span>`}
-      </div>
-      <div class="glass-card glass-card-hover rounded-2xl p-6 border border-cardBorder flex flex-col">
-        <i class="fa-solid fa-file-pdf text-3xl text-accentPurple mb-3"></i>
-        <div class="text-sm font-bold text-white">${esc(c.pdf3Title)}</div>
-        <p class="text-xs text-slate-400 mt-2 flex-grow">${esc(c.pdf3Desc)}</p>
-        ${c.pdf3Url ? `<a href="${esc(c.pdf3Url)}" target="_blank" class="mt-4 inline-flex items-center justify-center text-xs font-bold bg-accentPurple/15 text-accentPurple px-4 py-2.5 rounded-lg">Yuklab olish</a>` : `<span class="mt-4 inline-flex items-center justify-center text-xs font-bold bg-cardBorder/40 text-slate-500 px-4 py-2.5 rounded-lg">Tez orada</span>`}
-      </div>
+        <div class="text-sm font-bold text-white">${esc(p.title)}</div>
+        <p class="text-xs text-slate-400 mt-2 flex-grow">${esc(p.desc)}</p>
+        ${p.url ? `<a href="${esc(p.url)}" target="_blank" class="mt-4 inline-flex items-center justify-center text-xs font-bold bg-accentPurple/15 text-accentPurple px-4 py-2.5 rounded-lg">Yuklab olish</a>` : `<span class="mt-4 inline-flex items-center justify-center text-xs font-bold bg-cardBorder/40 text-slate-500 px-4 py-2.5 rounded-lg">Tez orada</span>`}
+      </div>`).join('')}
     </div>
   </div>
 </section>
@@ -486,14 +487,8 @@ function adminPageHtml(c, message) {
     <div class="tab-panel space-y-4 bg-slate-900 border border-slate-800 p-6 rounded-2xl" data-panel="video">
       <h2 class="font-bold text-yellow-500">YouTube video darslar</h2>
       ${field('YouTube kanal havolasi', 'youtubeChannel', c.youtubeChannel)}
-      <div class="grid sm:grid-cols-1 gap-3 pt-2">
-        ${field('Video 1 sarlavhasi', 'youtube1Title', c.youtube1Title)}
-        ${field('Video 1 havolasi', 'youtube1Url', c.youtube1Url)}
-        ${field('Video 2 sarlavhasi', 'youtube2Title', c.youtube2Title)}
-        ${field('Video 2 havolasi', 'youtube2Url', c.youtube2Url)}
-        ${field('Video 3 sarlavhasi', 'youtube3Title', c.youtube3Title)}
-        ${field('Video 3 havolasi', 'youtube3Url', c.youtube3Url)}
-      </div>
+      <div id="videoList" class="space-y-3 pt-2"></div>
+      <button type="button" onclick="addVideoRow()" class="w-full border-2 border-dashed border-slate-700 hover:border-yellow-500 text-slate-400 hover:text-yellow-500 transition py-3 rounded-xl text-sm font-bold">+ Yangi video qo'shish</button>
     </div>
 
     <div class="tab-panel space-y-4 bg-slate-900 border border-slate-800 p-6 rounded-2xl" data-panel="halal">
@@ -507,21 +502,8 @@ function adminPageHtml(c, message) {
 
     <div class="tab-panel space-y-4 bg-slate-900 border border-slate-800 p-6 rounded-2xl" data-panel="pdf">
       <h2 class="font-bold text-yellow-500">PDF kutubxona (havolani bo'sh qoldirsangiz, "Tez orada" deb ko'rsatiladi)</h2>
-      <div class="grid gap-3 pb-3 border-b border-slate-800">
-        ${field('PDF 1 sarlavhasi', 'pdf1Title', c.pdf1Title)}
-        ${textareaField('PDF 1 tavsifi', 'pdf1Desc', c.pdf1Desc)}
-        ${field('PDF 1 havolasi', 'pdf1Url', c.pdf1Url)}
-      </div>
-      <div class="grid gap-3 pb-3 border-b border-slate-800">
-        ${field('PDF 2 sarlavhasi', 'pdf2Title', c.pdf2Title)}
-        ${textareaField('PDF 2 tavsifi', 'pdf2Desc', c.pdf2Desc)}
-        ${field('PDF 2 havolasi', 'pdf2Url', c.pdf2Url)}
-      </div>
-      <div class="grid gap-3">
-        ${field('PDF 3 sarlavhasi', 'pdf3Title', c.pdf3Title)}
-        ${textareaField('PDF 3 tavsifi', 'pdf3Desc', c.pdf3Desc)}
-        ${field('PDF 3 havolasi', 'pdf3Url', c.pdf3Url)}
-      </div>
+      <div id="pdfList" class="space-y-4"></div>
+      <button type="button" onclick="addPdfRow()" class="w-full border-2 border-dashed border-slate-700 hover:border-yellow-500 text-slate-400 hover:text-yellow-500 transition py-3 rounded-xl text-sm font-bold">+ Yangi PDF qo'shish</button>
     </div>
 
     <button type="submit" class="w-full bg-yellow-500 hover:bg-yellow-400 transition text-black font-bold p-3.5 rounded-xl">Barcha o'zgarishlarni saqlash</button>
@@ -548,11 +530,56 @@ function fileToBase64(input, hiddenId) {
 fileToBase64(document.getElementById('logoFile'), 'logoImage');
 fileToBase64(document.getElementById('heroFile'), 'heroImage');
 
+// ---- Dinamik Video ro'yxati ----
+const existingVideos = ${JSON.stringify(c.videos || [])};
+function addVideoRow(video) {
+  video = video || { title: '', url: '' };
+  const wrap = document.createElement('div');
+  wrap.className = 'video-row flex gap-2 items-start bg-slate-800/60 p-3 rounded-xl';
+  wrap.innerHTML =
+    '<div class="flex-grow space-y-2">' +
+      '<input class="v-title w-full p-2.5 rounded-lg bg-slate-800 border border-slate-700" placeholder="Video sarlavhasi" value="' + video.title.replace(/"/g,'&quot;') + '">' +
+      '<input class="v-url w-full p-2.5 rounded-lg bg-slate-800 border border-slate-700" placeholder="Video havolasi (YouTube link)" value="' + video.url.replace(/"/g,'&quot;') + '">' +
+    '</div>' +
+    '<button type="button" onclick="this.parentElement.remove()" class="bg-red-600 hover:bg-red-500 transition text-white text-xs font-bold px-3 py-2 rounded-lg mt-1">O\\'chirish</button>';
+  document.getElementById('videoList').appendChild(wrap);
+}
+existingVideos.forEach(addVideoRow);
+
+// ---- Dinamik PDF ro'yxati ----
+const existingPdfs = ${JSON.stringify(c.pdfs || [])};
+function addPdfRow(pdf) {
+  pdf = pdf || { title: '', desc: '', url: '' };
+  const wrap = document.createElement('div');
+  wrap.className = 'pdf-row flex gap-2 items-start bg-slate-800/60 p-3 rounded-xl';
+  wrap.innerHTML =
+    '<div class="flex-grow space-y-2">' +
+      '<input class="p-title w-full p-2.5 rounded-lg bg-slate-800 border border-slate-700" placeholder="PDF sarlavhasi" value="' + pdf.title.replace(/"/g,'&quot;') + '">' +
+      '<textarea class="p-desc w-full p-2.5 rounded-lg bg-slate-800 border border-slate-700" rows="2" placeholder="Qisqa tavsif">' + pdf.desc.replace(/</g,'&lt;') + '</textarea>' +
+      '<input class="p-url w-full p-2.5 rounded-lg bg-slate-800 border border-slate-700" placeholder="PDF havolasi (bo\\'sh qoldirsa \\'Tez orada\\' chiqadi)" value="' + pdf.url.replace(/"/g,'&quot;') + '">' +
+    '</div>' +
+    '<button type="button" onclick="this.parentElement.remove()" class="bg-red-600 hover:bg-red-500 transition text-white text-xs font-bold px-3 py-2 rounded-lg mt-1">O\\'chirish</button>';
+  document.getElementById('pdfList').appendChild(wrap);
+}
+existingPdfs.forEach(addPdfRow);
+
 document.getElementById('editForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const formData = new FormData(e.target);
   const data = {};
   formData.forEach((v, k) => { data[k] = v; });
+
+  data.videos = Array.from(document.querySelectorAll('#videoList .video-row')).map(row => ({
+    title: row.querySelector('.v-title').value.trim(),
+    url: row.querySelector('.v-url').value.trim()
+  })).filter(v => v.title || v.url);
+
+  data.pdfs = Array.from(document.querySelectorAll('#pdfList .pdf-row')).map(row => ({
+    title: row.querySelector('.p-title').value.trim(),
+    desc: row.querySelector('.p-desc').value.trim(),
+    url: row.querySelector('.p-url').value.trim()
+  })).filter(p => p.title || p.desc || p.url);
+
   const res = await fetch('/admin/save', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
