@@ -121,6 +121,18 @@ function esc(s) {
   return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+function ytThumbnail(url) {
+  if (!url) return null;
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtube\.com\/live\/|youtu\.be\/|youtube\.com\/shorts\/|youtube\.com\/embed\/)([A-Za-z0-9_-]{11})/
+  ];
+  for (const re of patterns) {
+    const m = url.match(re);
+    if (m && m[1]) return `https://img.youtube.com/vi/${m[1]}/hqdefault.jpg`;
+  }
+  return null;
+}
+
 function logoHtml(c) {
   if (c.logoImage) {
     return `<img src="${c.logoImage}" alt="Logo" class="w-full h-full object-contain rounded-xl">`;
@@ -271,11 +283,19 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background-color:#06080D;color:#
       <p class="text-slate-400 text-sm mt-3">SMC, ICT va risk-menedjment bo'yicha bepul video darslarimiz</p>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      ${(c.videos || []).map(v => `
+      ${(c.videos || []).map(v => {
+        const thumb = ytThumbnail(v.url);
+        return `
       <a href="${esc(v.url)}" target="_blank" class="glass-card glass-card-hover rounded-2xl overflow-hidden border border-cardBorder block">
-        <div class="aspect-video bg-darkBg/90 flex items-center justify-center border-b border-cardBorder"><i class="fa-brands fa-youtube text-5xl text-red-500/70"></i></div>
+        <div class="aspect-video bg-darkBg/90 flex items-center justify-center border-b border-cardBorder relative overflow-hidden">
+          ${thumb
+            ? `<img src="${thumb}" alt="${esc(v.title)}" class="w-full h-full object-cover">
+               <div class="absolute inset-0 flex items-center justify-center bg-black/25"><i class="fa-brands fa-youtube text-4xl text-white drop-shadow-lg"></i></div>`
+            : `<i class="fa-brands fa-youtube text-5xl text-red-500/70"></i>`}
+        </div>
         <div class="p-4"><div class="text-sm font-bold text-white">${esc(v.title)}</div></div>
-      </a>`).join('')}
+      </a>`;
+      }).join('')}
     </div>
     <div class="text-center mt-8">
       <a href="${esc(c.youtubeChannel)}" target="_blank" class="inline-flex items-center space-x-2 text-red-400 font-bold text-sm hover:text-red-300">
