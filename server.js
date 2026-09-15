@@ -202,9 +202,42 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background-color:#06080D;color:#
       <a href="${esc(c.telegramBot)}" target="_blank" class="hidden md:flex items-center space-x-2 bg-gradient-to-r from-goldAccent to-goldDark text-darkBg font-extrabold px-4 py-2.5 rounded-xl text-xs">
         <i class="fa-solid fa-robot"></i><span>Aloqa Boti</span>
       </a>
+      <button id="mobileMenuBtn" class="xl:hidden flex items-center justify-center w-11 h-11 rounded-xl border border-cardBorder text-white">
+        <i class="fa-solid fa-bars text-lg"></i>
+      </button>
     </div>
   </div>
+  <div id="mobileMenu" class="hidden xl:hidden border-t border-cardBorder bg-cardBg/95 backdrop-blur-2xl">
+    <nav class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col space-y-1 text-sm font-bold text-slate-300">
+      <a href="#hero" class="py-2.5 px-2 rounded-lg hover:bg-white/5 hover:text-goldAccent">Bosh Sahifa</a>
+      <a href="#youtube" class="py-2.5 px-2 rounded-lg hover:bg-white/5 hover:text-red-400"><i class="fa-brands fa-youtube"></i> Video Darslar</a>
+      <a href="#halal" class="py-2.5 px-2 rounded-lg hover:bg-white/5 hover:text-goldAccent"><i class="fa-solid fa-kaaba"></i> Kripto Halolmi?</a>
+      <a href="#calculator" class="py-2.5 px-2 rounded-lg hover:bg-white/5 hover:text-accentBlue"><i class="fa-solid fa-calculator"></i> Kalkulyator</a>
+      <a href="#pdf-library" class="py-2.5 px-2 rounded-lg hover:bg-white/5 hover:text-accentPurple"><i class="fa-solid fa-book-bookmark"></i> PDF Kitoblar</a>
+      <a href="${esc(c.telegramBot)}" target="_blank" class="mt-2 flex items-center justify-center space-x-2 bg-gradient-to-r from-goldAccent to-goldDark text-darkBg font-extrabold px-4 py-3 rounded-xl">
+        <i class="fa-solid fa-robot"></i><span>Aloqa Boti</span>
+      </a>
+    </nav>
+  </div>
 </header>
+<script>
+document.getElementById('mobileMenuBtn').addEventListener('click', function(){
+  const menu = document.getElementById('mobileMenu');
+  const icon = this.querySelector('i');
+  const isOpen = !menu.classList.contains('hidden');
+  if (isOpen) {
+    menu.classList.add('hidden');
+    icon.className = 'fa-solid fa-bars text-lg';
+  } else {
+    menu.classList.remove('hidden');
+    icon.className = 'fa-solid fa-xmark text-lg';
+  }
+});
+document.querySelectorAll('#mobileMenu a').forEach(a => a.addEventListener('click', () => {
+  document.getElementById('mobileMenu').classList.add('hidden');
+  document.getElementById('mobileMenuBtn').querySelector('i').className = 'fa-solid fa-bars text-lg';
+}));
+</script>
 
 <section id="hero" class="relative py-16 lg:py-28 border-b border-cardBorder grid-cyber-pattern">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
