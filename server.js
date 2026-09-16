@@ -120,6 +120,15 @@ function safeEqual(a, b) {
 function esc(s) {
   return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
+function socialHandle(url) {
+  if (!url) return '';
+  try {
+    const clean = url.split('?')[0].split('#')[0];
+    const u = new URL(clean);
+    const seg = u.pathname.split('/').filter(Boolean)[0] || '';
+    return seg;
+  } catch (e) { return ''; }
+}
 
 function ytThumbnail(url) {
   if (!url) return null;
@@ -150,6 +159,9 @@ function logoHtml(c) {
 }
 
 function buildPublicHtml(c) {
+  const instaHandle = socialHandle(c.instagram) || 'top_muslim_traders';
+  const tgChannelHandle = socialHandle(c.telegramChannel) || 'Scalp_TMT';
+  const tgResultsHandle = socialHandle(c.telegramResults) || 'TMT_Natijalari';
   return `<!DOCTYPE html>
 <html lang="uz" class="dark scroll-smooth">
 <head>
@@ -180,64 +192,123 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background-color:#06080D;color:#
 </head>
 <body class="bg-darkBg text-slate-100 antialiased flex flex-col min-h-screen justify-between relative">
 
-<header class="bg-cardBg/80 border-b border-cardBorder/80 backdrop-blur-2xl sticky top-0 z-40">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex items-center justify-between h-20">
-      <a href="#hero" class="flex items-center space-x-3.5 group">
-        <div class="relative w-12 h-12 flex-shrink-0">${logoHtml(c)}</div>
-        <div>
-          <div class="text-lg sm:text-xl font-black tracking-wider text-white leading-none">
-            TOP MUSLIM TRADERS <span class="gradient-gold-text">ACADEMY</span>
-          </div>
-          <span class="block text-[10px] text-emeraldGreen font-bold uppercase tracking-widest mt-1">Halol Kripto & Smart Money Hub</span>
-        </div>
-      </a>
-      <nav class="hidden xl:flex items-center space-x-6 text-sm font-bold text-slate-300">
-        <a href="#hero" class="hover:text-goldAccent">Bosh Sahifa</a>
-        <a href="#youtube" class="hover:text-red-400"><i class="fa-brands fa-youtube text-red-500"></i> Video Darslar</a>
-        <a href="#halal" class="hover:text-goldAccent"><i class="fa-solid fa-kaaba text-goldAccent"></i> Kripto Halolmi?</a>
-        <a href="#calculator" class="hover:text-accentBlue"><i class="fa-solid fa-calculator text-accentBlue"></i> Kalkulyator</a>
-        <a href="#pdf-library" class="hover:text-accentPurple"><i class="fa-solid fa-book-bookmark text-accentPurple"></i> PDF Kitoblar</a>
-      </nav>
-      <a href="${esc(c.telegramBot)}" target="_blank" class="hidden md:flex items-center space-x-2 bg-gradient-to-r from-goldAccent to-goldDark text-darkBg font-extrabold px-4 py-2.5 rounded-xl text-xs">
-        <i class="fa-solid fa-robot"></i><span>Aloqa Boti</span>
-      </a>
-      <button id="mobileMenuBtn" class="xl:hidden flex items-center justify-center w-11 h-11 rounded-xl border border-cardBorder text-white">
-        <i class="fa-solid fa-bars text-lg"></i>
-      </button>
+<div class="sticky top-0 z-40">
+  <div class="bg-cardBg border-b border-cardBorder/70 overflow-hidden">
+    <div class="tradingview-widget-container">
+      <div class="tradingview-widget-container__widget"></div>
+      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+      {
+      "symbols": [
+        { "proName": "BINANCE:BTCUSDT", "title": "Bitcoin" },
+        { "proName": "BINANCE:ETHUSDT", "title": "Ethereum" },
+        { "proName": "BINANCE:BNBUSDT", "title": "BNB" },
+        { "proName": "BINANCE:SOLUSDT", "title": "Solana" },
+        { "proName": "BINANCE:XRPUSDT", "title": "XRP" },
+        { "proName": "BINANCE:TONUSDT", "title": "Toncoin" },
+        { "proName": "BINANCE:ADAUSDT", "title": "Cardano" },
+        { "proName": "BINANCE:DOGEUSDT", "title": "Dogecoin" }
+      ],
+      "showSymbolLogo": true,
+      "isTransparent": true,
+      "displayMode": "adaptive",
+      "colorTheme": "dark",
+      "locale": "en"
+      }
+      </script>
     </div>
   </div>
-  <div id="mobileMenu" class="hidden xl:hidden border-t border-cardBorder bg-cardBg/95 backdrop-blur-2xl">
-    <nav class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col space-y-1 text-sm font-bold text-slate-300">
-      <a href="#hero" class="py-2.5 px-2 rounded-lg hover:bg-white/5 hover:text-goldAccent">Bosh Sahifa</a>
-      <a href="#youtube" class="py-2.5 px-2 rounded-lg hover:bg-white/5 hover:text-red-400"><i class="fa-brands fa-youtube"></i> Video Darslar</a>
-      <a href="#halal" class="py-2.5 px-2 rounded-lg hover:bg-white/5 hover:text-goldAccent"><i class="fa-solid fa-kaaba"></i> Kripto Halolmi?</a>
-      <a href="#calculator" class="py-2.5 px-2 rounded-lg hover:bg-white/5 hover:text-accentBlue"><i class="fa-solid fa-calculator"></i> Kalkulyator</a>
-      <a href="#pdf-library" class="py-2.5 px-2 rounded-lg hover:bg-white/5 hover:text-accentPurple"><i class="fa-solid fa-book-bookmark"></i> PDF Kitoblar</a>
-      <a href="${esc(c.telegramBot)}" target="_blank" class="mt-2 flex items-center justify-center space-x-2 bg-gradient-to-r from-goldAccent to-goldDark text-darkBg font-extrabold px-4 py-3 rounded-xl">
-        <i class="fa-solid fa-robot"></i><span>Aloqa Boti</span>
-      </a>
-    </nav>
+
+  <header class="bg-cardBg/80 border-b border-cardBorder/80 backdrop-blur-2xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20">
+        <a href="#hero" class="flex items-center space-x-3.5 group">
+          <div class="relative w-12 h-12 flex-shrink-0">${logoHtml(c)}</div>
+          <div>
+            <div class="text-lg sm:text-xl font-black tracking-wider text-white leading-none">
+              TOP MUSLIM TRADERS <span class="gradient-gold-text">ACADEMY</span>
+            </div>
+            <span class="block text-[10px] text-emeraldGreen font-bold uppercase tracking-widest mt-1">Halol Kripto & Smart Money Hub</span>
+          </div>
+        </a>
+        <nav class="hidden xl:flex items-center space-x-6 text-sm font-bold text-slate-300">
+          <a href="#hero" class="hover:text-goldAccent">Bosh Sahifa</a>
+          <a href="${esc(c.instagram)}" target="_blank" class="hover:text-instaPink"><i class="fa-brands fa-instagram text-instaPink"></i> Instagram</a>
+          <a href="#youtube" class="hover:text-red-400"><i class="fa-brands fa-youtube text-red-500"></i> Video Darslar</a>
+          <a href="#halal" class="hover:text-goldAccent"><i class="fa-solid fa-kaaba text-goldAccent"></i> Kripto Halolmi?</a>
+          <a href="#calculator" class="hover:text-accentBlue"><i class="fa-solid fa-calculator text-accentBlue"></i> Kalkulyator</a>
+          <a href="#pdf-library" class="hover:text-accentPurple"><i class="fa-solid fa-book-bookmark text-accentPurple"></i> PDF Kitoblar</a>
+          <a href="#tahlil" class="hover:text-emeraldGreen"><i class="fa-solid fa-chart-line text-emeraldGreen"></i> Tahlil</a>
+        </nav>
+        <div class="flex items-center gap-3">
+          <a href="${esc(c.telegramBot)}" target="_blank" class="hidden md:flex items-center space-x-2 bg-gradient-to-r from-goldAccent to-goldDark text-darkBg font-extrabold px-4 py-2.5 rounded-xl text-xs">
+            <i class="fa-solid fa-robot"></i><span>Aloqa Boti</span>
+          </a>
+          <button id="menuOpenBtn" type="button" aria-label="Menyu" class="xl:hidden flex items-center justify-center w-11 h-11 rounded-xl border border-cardBorder bg-cardBg/70 text-goldAccent hover:border-goldAccent/60 transition">
+            <i class="fa-solid fa-bars text-lg"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+</div>
+
+<div id="mobileMenuOverlay" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden"></div>
+<aside id="mobileMenuPanel" class="fixed top-0 right-0 h-full w-[85%] max-w-sm bg-cardBg border-l border-cardBorder z-50 translate-x-full transition-transform duration-300 overflow-y-auto">
+  <div class="flex items-center justify-between p-5 border-b border-cardBorder">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 flex-shrink-0">${logoHtml(c)}</div>
+      <div class="text-sm font-black text-white leading-tight">TOP MUSLIM TRADERS<br><span class="gradient-gold-text">ACADEMY</span></div>
+    </div>
+    <button id="menuCloseBtn" aria-label="Yopish" class="text-slate-400 hover:text-white text-3xl leading-none px-2">&times;</button>
   </div>
-</header>
-<script>
-document.getElementById('mobileMenuBtn').addEventListener('click', function(){
-  const menu = document.getElementById('mobileMenu');
-  const icon = this.querySelector('i');
-  const isOpen = !menu.classList.contains('hidden');
-  if (isOpen) {
-    menu.classList.add('hidden');
-    icon.className = 'fa-solid fa-bars text-lg';
-  } else {
-    menu.classList.remove('hidden');
-    icon.className = 'fa-solid fa-xmark text-lg';
-  }
-});
-document.querySelectorAll('#mobileMenu a').forEach(a => a.addEventListener('click', () => {
-  document.getElementById('mobileMenu').classList.add('hidden');
-  document.getElementById('mobileMenuBtn').querySelector('i').className = 'fa-solid fa-bars text-lg';
-}));
-</script>
+
+  <div class="p-5 space-y-1">
+    <div class="text-[11px] font-bold tracking-widest text-goldAccent uppercase mb-2">Bo'limlar</div>
+    <a href="#hero" class="flex items-center gap-3.5 p-3 rounded-xl hover:bg-darkBg/60 text-sm font-bold text-slate-200">
+      <i class="fa-solid fa-house text-goldAccent w-5 text-center"></i><span>Bosh Sahifa</span>
+    </a>
+    <a href="${esc(c.instagram)}" target="_blank" class="flex items-center gap-3.5 p-3 rounded-xl hover:bg-darkBg/60 text-sm font-bold text-slate-200">
+      <i class="fa-brands fa-instagram text-instaPink w-5 text-center"></i><span>Instagram Sahifamiz</span>
+    </a>
+    <a href="#youtube" class="flex items-center gap-3.5 p-3 rounded-xl hover:bg-darkBg/60 text-sm font-bold text-slate-200">
+      <i class="fa-brands fa-youtube text-red-500 w-5 text-center"></i><span>Video Darslar</span>
+    </a>
+    <a href="#halal" class="flex items-center gap-3.5 p-3 rounded-xl hover:bg-darkBg/60 text-sm font-bold text-slate-200">
+      <i class="fa-solid fa-layer-group text-goldAccent w-5 text-center"></i><span>Kripto Halolmi?</span>
+    </a>
+    <a href="#calculator" class="flex items-center gap-3.5 p-3 rounded-xl hover:bg-darkBg/60 text-sm font-bold text-slate-200">
+      <i class="fa-solid fa-calculator text-accentBlue w-5 text-center"></i><span>Risk Kalkulyatori</span>
+    </a>
+    <a href="#pdf-library" class="flex items-center gap-3.5 p-3 rounded-xl hover:bg-darkBg/60 text-sm font-bold text-slate-200">
+      <i class="fa-solid fa-bookmark text-accentPurple w-5 text-center"></i><span>Kitoblar & PDF</span>
+    </a>
+    <a href="#tahlil" class="flex items-center gap-3.5 p-3 rounded-xl hover:bg-darkBg/60 text-sm font-bold text-slate-200">
+      <i class="fa-solid fa-chart-line text-emeraldGreen w-5 text-center"></i><span>Tahlil (Fundamental)</span>
+    </a>
+  </div>
+
+  <div class="p-5 pt-3 space-y-2.5 border-t border-cardBorder mt-2">
+    <div class="text-[11px] font-bold tracking-widest text-slate-500 uppercase mb-1">Ijtimoiy Tarmoqlar</div>
+    <a href="${esc(c.instagram)}" target="_blank" class="flex items-center justify-between p-3 rounded-xl border border-instaPink/30 text-instaPink text-sm font-bold">
+      <span class="flex items-center gap-2.5"><i class="fa-brands fa-instagram"></i>@${esc(instaHandle)}</span>
+      <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+    </a>
+    <a href="${esc(c.telegramChannel)}" target="_blank" class="flex items-center justify-between p-3 rounded-xl border border-accentBlue/30 text-accentBlue text-sm font-bold">
+      <span class="flex items-center gap-2.5"><i class="fa-brands fa-telegram"></i>@${esc(tgChannelHandle)}</span>
+      <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+    </a>
+    <a href="${esc(c.telegramResults)}" target="_blank" class="flex items-center justify-between p-3 rounded-xl border border-emeraldGreen/30 text-emeraldGreen text-sm font-bold">
+      <span class="flex items-center gap-2.5"><i class="fa-solid fa-chart-line"></i>@${esc(tgResultsHandle)}</span>
+      <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+    </a>
+  </div>
+
+  <div class="p-5 pt-2">
+    <a href="${esc(c.telegramBot)}" target="_blank" class="flex items-center justify-center gap-2.5 bg-gradient-to-r from-goldAccent to-goldDark text-darkBg font-black py-3.5 rounded-xl text-sm">
+      <i class="fa-solid fa-robot"></i><span>Aloqa Boti</span>
+    </a>
+  </div>
+</aside>
 
 <section id="hero" class="relative py-16 lg:py-28 border-b border-cardBorder grid-cyber-pattern">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -412,6 +483,58 @@ document.querySelectorAll('#mobileMenu a').forEach(a => a.addEventListener('clic
   </div>
 </section>
 
+<section id="tahlil" class="py-16 lg:py-24 border-b border-cardBorder grid-cyber-pattern">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center max-w-2xl mx-auto mb-12">
+      <span class="section-label"><i class="fa-solid fa-chart-line"></i> TAHLIL</span>
+      <h2 class="text-2xl sm:text-4xl font-black text-white mt-2">Fundamental Tahlil & Muhim Yangiliklar</h2>
+      <p class="text-slate-400 text-sm mt-3">Bozorni harakatga keltiruvchi so'nggi fundamental yangiliklar va Forex Factory uslubidagi muhim iqtisodiy kalendar</p>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="glass-card rounded-3xl p-4 sm:p-6 border border-emeraldGreen/20">
+        <div class="flex items-center gap-2 mb-4 px-2">
+          <i class="fa-solid fa-newspaper text-emeraldGreen"></i>
+          <h3 class="text-sm font-bold text-white uppercase tracking-wide">Fundamental Yangiliklar</h3>
+        </div>
+        <div class="tradingview-widget-container" style="height:520px">
+          <div class="tradingview-widget-container__widget"></div>
+          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-timeline.js" async>
+          {
+          "feedMode": "all_symbols",
+          "isTransparent": true,
+          "displayMode": "regular",
+          "width": "100%",
+          "height": 520,
+          "colorTheme": "dark",
+          "locale": "en"
+          }
+          </script>
+        </div>
+      </div>
+      <div class="glass-card rounded-3xl p-4 sm:p-6 border border-goldAccent/20">
+        <div class="flex items-center gap-2 mb-4 px-2">
+          <i class="fa-solid fa-calendar-days text-goldAccent"></i>
+          <h3 class="text-sm font-bold text-white uppercase tracking-wide">Iqtisodiy Kalendar (Forex Factory uslubida)</h3>
+        </div>
+        <div class="tradingview-widget-container" style="height:520px">
+          <div class="tradingview-widget-container__widget"></div>
+          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-events.js" async>
+          {
+          "colorTheme": "dark",
+          "isTransparent": true,
+          "width": "100%",
+          "height": 520,
+          "locale": "en",
+          "importanceFilter": "-1,0,1",
+          "currencyFilter": "USD,EUR,GBP,JPY,CHF,AUD,CAD,NZD,CNY"
+          }
+          </script>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <footer class="bg-cardBg border-t border-cardBorder py-10">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs text-slate-500">
     &copy; 2026 TOP MUSLIM TRADERS ACADEMY. Barcha huquqlar himoyalangan.
@@ -419,6 +542,26 @@ document.querySelectorAll('#mobileMenu a').forEach(a => a.addEventListener('clic
 </footer>
 
 <script>
+(function(){
+  const menuOpenBtn = document.getElementById('menuOpenBtn');
+  const menuCloseBtn = document.getElementById('menuCloseBtn');
+  const overlay = document.getElementById('mobileMenuOverlay');
+  const panel = document.getElementById('mobileMenuPanel');
+  function openMenu(){
+    overlay.classList.remove('hidden');
+    panel.classList.remove('translate-x-full');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMenu(){
+    overlay.classList.add('hidden');
+    panel.classList.add('translate-x-full');
+    document.body.style.overflow = '';
+  }
+  if (menuOpenBtn) menuOpenBtn.addEventListener('click', openMenu);
+  if (menuCloseBtn) menuCloseBtn.addEventListener('click', closeMenu);
+  if (overlay) overlay.addEventListener('click', closeMenu);
+  document.querySelectorAll('#mobileMenuPanel a').forEach(a => a.addEventListener('click', closeMenu));
+})();
 function calcPosition(){
   const deposit = parseFloat(document.getElementById('calcDeposit').value) || 0;
   const riskPct = parseFloat(document.getElementById('calcRisk').value) || 0;
