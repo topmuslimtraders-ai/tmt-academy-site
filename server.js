@@ -22,6 +22,7 @@ const defaultContent = {
   telegramBot: 'https://t.me/TopMuslimTradersBot',
   telegramChannel: 'https://t.me/Scalp_TMT',
   telegramResults: 'https://t.me/TMT_Natijalari',
+  telegramMain: 'https://t.me/Top_Muslim_Traders',
   instagram: 'https://www.instagram.com/top_muslim_traders?stkn=MWFiZWd6cGZua3d6aw==',
   heroImage: '',
   logoImage: '',
@@ -29,10 +30,16 @@ const defaultContent = {
   // YouTube / video darslar (cheksiz miqdorda qo'shsa bo'ladi)
   youtubeChannel: 'https://youtube.com/@topmuslimtraders',
   videos: [
-    { title: "SMC asoslari: Order Block va Liquidity", url: 'https://youtube.com/@topmuslimtraders' },
-    { title: 'ICT tahlil: Market Structure tushunchasi', url: 'https://youtube.com/@topmuslimtraders' },
-    { title: 'Risk-menedjment: Halol pozitsiya hajmi', url: 'https://youtube.com/@topmuslimtraders' }
+    { title: "SMC asoslari: Order Block va Liquidity", url: 'https://youtube.com/@topmuslimtraders', thumbnail: '' },
+    { title: 'ICT tahlil: Market Structure tushunchasi', url: 'https://youtube.com/@topmuslimtraders', thumbnail: '' },
+    { title: 'Risk-menedjment: Halol pozitsiya hajmi', url: 'https://youtube.com/@topmuslimtraders', thumbnail: '' }
   ],
+
+  // YouTube Shorts (cheksiz miqdorda qo'shsa bo'ladi)
+  shorts: [],
+
+  // Maqolalar (cheksiz miqdorda qo'shsa bo'ladi)
+  articles: [],
 
   // Kripto halolmi?
   halalTitle: 'Kripto Savdosi Islom Nuqtai Nazaridan Halolmi?',
@@ -43,9 +50,9 @@ const defaultContent = {
 
   // PDF kutubxona (cheksiz miqdorda qo'shsa bo'ladi)
   pdfs: [
-    { title: 'SMC & ICT Boshlang\u2019ich Qo\u2019llanma', desc: "Smart Money Concepts va ICT tahlilining asosiy tushunchalari haqida qisqa qo'llanma.", url: '' },
-    { title: "Risk-menedjment Yo'riqnomasi", desc: "Halol va intizomli risk boshqaruvi bo'yicha amaliy maslahatlar.", url: '' },
-    { title: "Halol Savdo Qo'llanmasi", desc: 'Spot savdoda shariat tamoyillariga rioya qilish bo\u2019yicha asosiy qoidalar.', url: '' }
+    { title: 'SMC & ICT Boshlang\u2019ich Qo\u2019llanma', desc: "Smart Money Concepts va ICT tahlilining asosiy tushunchalari haqida qisqa qo'llanma.", url: '', cover: '' },
+    { title: "Risk-menedjment Yo'riqnomasi", desc: "Halol va intizomli risk boshqaruvi bo'yicha amaliy maslahatlar.", url: '', cover: '' },
+    { title: "Halol Savdo Qo'llanmasi", desc: 'Spot savdoda shariat tamoyillariga rioya qilish bo\u2019yicha asosiy qoidalar.', url: '', cover: '' }
   ]
 };
 
@@ -56,20 +63,32 @@ function migrateOldFields(c) {
     for (let i = 1; i <= 10; i++) {
       const t = c['youtube' + i + 'Title'];
       const u = c['youtube' + i + 'Url'];
-      if (t || u) vids.push({ title: t || '', url: u || '' });
+      if (t || u) vids.push({ title: t || '', url: u || '', thumbnail: '' });
     }
     c.videos = vids.length ? vids : defaultContent.videos;
   }
+  c.videos = c.videos.map(v => Object.assign({ title: '', url: '', thumbnail: '' }, v));
+
+  if (!Array.isArray(c.shorts)) c.shorts = defaultContent.shorts;
+  c.shorts = c.shorts.map(v => Object.assign({ title: '', url: '', thumbnail: '' }, v));
+
+  if (!Array.isArray(c.articles)) c.articles = defaultContent.articles;
+  c.articles = c.articles.map(a => Object.assign({ title: '', text: '', cover: '' }, a));
+
   if (!Array.isArray(c.pdfs)) {
     const pdfs = [];
     for (let i = 1; i <= 10; i++) {
       const t = c['pdf' + i + 'Title'];
       const d = c['pdf' + i + 'Desc'];
       const u = c['pdf' + i + 'Url'];
-      if (t || d || u) pdfs.push({ title: t || '', desc: d || '', url: u || '' });
+      if (t || d || u) pdfs.push({ title: t || '', desc: d || '', url: u || '', cover: '' });
     }
     c.pdfs = pdfs.length ? pdfs : defaultContent.pdfs;
   }
+  c.pdfs = c.pdfs.map(p => Object.assign({ title: '', desc: '', url: '', cover: '' }, p));
+
+  if (typeof c.telegramMain !== 'string') c.telegramMain = defaultContent.telegramMain;
+
   return c;
 }
 function loadContent() {
@@ -141,6 +160,9 @@ function ytThumbnail(url) {
   }
   return null;
 }
+function isPlaylistUrl(url) {
+  return !!(url && /[?&]list=/.test(url));
+}
 
 function logoHtml(c) {
   if (c.logoImage) {
@@ -162,6 +184,7 @@ function buildPublicHtml(c) {
   const instaHandle = socialHandle(c.instagram) || 'top_muslim_traders';
   const tgChannelHandle = socialHandle(c.telegramChannel) || 'Scalp_TMT';
   const tgResultsHandle = socialHandle(c.telegramResults) || 'TMT_Natijalari';
+  const tgMainHandle = socialHandle(c.telegramMain) || 'Top_Muslim_Traders';
   return `<!DOCTYPE html>
 <html lang="uz" class="dark scroll-smooth">
 <head>
@@ -204,9 +227,21 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background-color:#06080D;color:#
         { "proName": "BINANCE:BNBUSDT", "title": "BNB" },
         { "proName": "BINANCE:SOLUSDT", "title": "Solana" },
         { "proName": "BINANCE:XRPUSDT", "title": "XRP" },
-        { "proName": "BINANCE:TONUSDT", "title": "Toncoin" },
+        { "proName": "BINANCE:DOGEUSDT", "title": "Dogecoin" },
         { "proName": "BINANCE:ADAUSDT", "title": "Cardano" },
-        { "proName": "BINANCE:DOGEUSDT", "title": "Dogecoin" }
+        { "proName": "BINANCE:TRXUSDT", "title": "TRON" },
+        { "proName": "BINANCE:AVAXUSDT", "title": "Avalanche" },
+        { "proName": "BINANCE:SHIBUSDT", "title": "Shiba Inu" },
+        { "proName": "BINANCE:TONUSDT", "title": "Toncoin" },
+        { "proName": "BINANCE:DOTUSDT", "title": "Polkadot" },
+        { "proName": "BINANCE:LINKUSDT", "title": "Chainlink" },
+        { "proName": "BINANCE:BCHUSDT", "title": "Bitcoin Cash" },
+        { "proName": "BINANCE:NEARUSDT", "title": "NEAR" },
+        { "proName": "BINANCE:MATICUSDT", "title": "Polygon" },
+        { "proName": "BINANCE:LTCUSDT", "title": "Litecoin" },
+        { "proName": "BINANCE:ICPUSDT", "title": "Internet Computer" },
+        { "proName": "BINANCE:UNIUSDT", "title": "Uniswap" },
+        { "proName": "BINANCE:ETCUSDT", "title": "Ethereum Classic" }
       ],
       "showSymbolLogo": true,
       "isTransparent": true,
@@ -230,10 +265,11 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background-color:#06080D;color:#
             <span class="block text-[10px] text-emeraldGreen font-bold uppercase tracking-widest mt-1">Halol Kripto & Smart Money Hub</span>
           </div>
         </a>
-        <nav class="hidden xl:flex items-center space-x-6 text-sm font-bold text-slate-300">
+        <nav class="hidden xl:flex items-center space-x-5 text-sm font-bold text-slate-300">
           <a href="#hero" class="hover:text-goldAccent">Bosh Sahifa</a>
-          <a href="${esc(c.instagram)}" target="_blank" class="hover:text-instaPink"><i class="fa-brands fa-instagram text-instaPink"></i> Instagram</a>
           <a href="#youtube" class="hover:text-red-400"><i class="fa-brands fa-youtube text-red-500"></i> Video Darslar</a>
+          <a href="#shorts" class="hover:text-red-400"><i class="fa-solid fa-mobile-screen-button text-red-400"></i> Shorts</a>
+          <a href="#articles" class="hover:text-emeraldGreen"><i class="fa-solid fa-newspaper text-emeraldGreen"></i> Maqolalar</a>
           <a href="#halal" class="hover:text-goldAccent"><i class="fa-solid fa-kaaba text-goldAccent"></i> Kripto Halolmi?</a>
           <a href="#calculator" class="hover:text-accentBlue"><i class="fa-solid fa-calculator text-accentBlue"></i> Kalkulyator</a>
           <a href="#pdf-library" class="hover:text-accentPurple"><i class="fa-solid fa-book-bookmark text-accentPurple"></i> PDF Kitoblar</a>
@@ -267,14 +303,17 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background-color:#06080D;color:#
     <a href="#hero" class="flex items-center gap-3.5 p-3 rounded-xl hover:bg-darkBg/60 text-sm font-bold text-slate-200">
       <i class="fa-solid fa-house text-goldAccent w-5 text-center"></i><span>Bosh Sahifa</span>
     </a>
-    <a href="${esc(c.instagram)}" target="_blank" class="flex items-center gap-3.5 p-3 rounded-xl hover:bg-darkBg/60 text-sm font-bold text-slate-200">
-      <i class="fa-brands fa-instagram text-instaPink w-5 text-center"></i><span>Instagram Sahifamiz</span>
-    </a>
     <a href="#youtube" class="flex items-center gap-3.5 p-3 rounded-xl hover:bg-darkBg/60 text-sm font-bold text-slate-200">
       <i class="fa-brands fa-youtube text-red-500 w-5 text-center"></i><span>Video Darslar</span>
     </a>
+    <a href="#shorts" class="flex items-center gap-3.5 p-3 rounded-xl hover:bg-darkBg/60 text-sm font-bold text-slate-200">
+      <i class="fa-solid fa-mobile-screen-button text-red-400 w-5 text-center"></i><span>Shorts</span>
+    </a>
+    <a href="#articles" class="flex items-center gap-3.5 p-3 rounded-xl hover:bg-darkBg/60 text-sm font-bold text-slate-200">
+      <i class="fa-solid fa-newspaper text-emeraldGreen w-5 text-center"></i><span>Maqolalar</span>
+    </a>
     <a href="#halal" class="flex items-center gap-3.5 p-3 rounded-xl hover:bg-darkBg/60 text-sm font-bold text-slate-200">
-      <i class="fa-solid fa-layer-group text-goldAccent w-5 text-center"></i><span>Kripto Halolmi?</span>
+      <i class="fa-solid fa-kaaba text-goldAccent w-5 text-center"></i><span>Kripto Halolmi?</span>
     </a>
     <a href="#calculator" class="flex items-center gap-3.5 p-3 rounded-xl hover:bg-darkBg/60 text-sm font-bold text-slate-200">
       <i class="fa-solid fa-calculator text-accentBlue w-5 text-center"></i><span>Risk Kalkulyatori</span>
@@ -289,6 +328,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background-color:#06080D;color:#
 
   <div class="p-5 pt-3 space-y-2.5 border-t border-cardBorder mt-2">
     <div class="text-[11px] font-bold tracking-widest text-slate-500 uppercase mb-1">Ijtimoiy Tarmoqlar</div>
+    <a href="${esc(c.telegramMain)}" target="_blank" class="flex items-center justify-between p-3 rounded-xl border border-goldAccent/40 text-goldAccent text-sm font-bold">
+      <span class="flex items-center gap-2.5"><i class="fa-brands fa-telegram"></i>Asosiy Kanal @${esc(tgMainHandle)}</span>
+      <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+    </a>
     <a href="${esc(c.instagram)}" target="_blank" class="flex items-center justify-between p-3 rounded-xl border border-instaPink/30 text-instaPink text-sm font-bold">
       <span class="flex items-center gap-2.5"><i class="fa-brands fa-instagram"></i>@${esc(instaHandle)}</span>
       <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
@@ -323,8 +366,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background-color:#06080D;color:#
         </h1>
         <p class="text-slate-300 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto lg:mx-0">${esc(c.heroDesc)}</p>
         <div class="flex flex-wrap justify-center lg:justify-start gap-4 pt-3">
-          <a href="${esc(c.telegramChannel)}" target="_blank" class="flex items-center space-x-2.5 bg-gradient-to-r from-goldAccent to-goldDark text-darkBg font-black px-7 py-4 rounded-2xl text-sm">
-            <i class="fa-brands fa-telegram text-xl"></i><span>Scalp Telegram Kanal</span>
+          <a href="${esc(c.telegramMain)}" target="_blank" class="flex items-center space-x-2.5 bg-gradient-to-r from-goldAccent to-goldDark text-darkBg font-black px-7 py-4 rounded-2xl text-sm">
+            <i class="fa-brands fa-telegram text-xl"></i><span>Asosiy Telegram Kanal</span>
           </a>
           <a href="${esc(c.instagram)}" target="_blank" class="flex items-center space-x-2.5 bg-gradient-to-r from-instaOrange via-instaPink to-instaPurple text-white font-black px-7 py-4 rounded-2xl text-sm">
             <i class="fa-brands fa-instagram text-xl"></i><span>Instagram Sahifamiz</span>
@@ -347,7 +390,15 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background-color:#06080D;color:#
       </div>
       <div class="lg:col-span-5">
         <div class="glass-card border border-goldAccent/30 rounded-3xl p-6">
+          <div class="text-[11px] font-bold tracking-widest text-slate-500 uppercase mb-3 px-1">Bizning Kanallarimiz</div>
           <div class="space-y-3">
+            <a href="${esc(c.telegramMain)}" target="_blank" class="flex items-center justify-between p-3.5 rounded-2xl bg-darkBg/90 border border-goldAccent/50">
+              <div class="flex items-center space-x-3.5">
+                <div class="w-10 h-10 rounded-xl bg-goldAccent/15 text-goldAccent flex items-center justify-center"><i class="fa-brands fa-telegram text-xl"></i></div>
+                <div><div class="text-sm font-bold text-white">Asosiy Telegram Kanal</div><div class="text-xs text-slate-400">@${esc(tgMainHandle)}</div></div>
+              </div>
+              <i class="fa-solid fa-arrow-up-right-from-square text-xs text-slate-500"></i>
+            </a>
             <a href="${esc(c.instagram)}" target="_blank" class="flex items-center justify-between p-3.5 rounded-2xl bg-darkBg/90 border border-instaPink/40">
               <div class="flex items-center space-x-3.5">
                 <div class="w-10 h-10 rounded-xl insta-gradient-bg text-white flex items-center justify-center"><i class="fa-brands fa-instagram text-xl"></i></div>
@@ -357,7 +408,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background-color:#06080D;color:#
             <a href="${esc(c.telegramChannel)}" target="_blank" class="flex items-center justify-between p-3.5 rounded-2xl bg-darkBg/90 border border-cardBorder">
               <div class="flex items-center space-x-3.5">
                 <div class="w-10 h-10 rounded-xl bg-accentBlue/10 text-accentBlue flex items-center justify-center"><i class="fa-brands fa-telegram text-xl"></i></div>
-                <div><div class="text-sm font-bold text-white">Telegram Kanal</div><div class="text-xs text-slate-400">Signallar & Tahlillar</div></div>
+                <div><div class="text-sm font-bold text-white">Scalp Telegram Kanal</div><div class="text-xs text-slate-400">Signallar & Tahlillar</div></div>
               </div>
             </a>
             <a href="${esc(c.telegramResults)}" target="_blank" class="flex items-center justify-between p-3.5 rounded-2xl bg-darkBg/90 border border-cardBorder">
@@ -384,11 +435,12 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background-color:#06080D;color:#
     <div class="text-center max-w-2xl mx-auto mb-12">
       <span class="section-label"><i class="fa-brands fa-youtube"></i> VIDEO DARSLAR</span>
       <h2 class="text-2xl sm:text-4xl font-black text-white mt-2">O'rganishni Video Orqali Boshlang</h2>
-      <p class="text-slate-400 text-sm mt-3">SMC, ICT va risk-menedjment bo'yicha bepul video darslarimiz</p>
+      <p class="text-slate-400 text-sm mt-3">SMC, ICT va risk-menedjment bo'yicha bepul video darslarimiz va playlistlarimiz</p>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       ${(c.videos || []).map(v => {
-        const thumb = ytThumbnail(v.url);
+        const thumb = v.thumbnail || ytThumbnail(v.url);
+        const playlist = isPlaylistUrl(v.url);
         return `
       <a href="${esc(v.url)}" target="_blank" class="glass-card glass-card-hover rounded-2xl overflow-hidden border border-cardBorder block">
         <div class="aspect-video bg-darkBg/90 flex items-center justify-center border-b border-cardBorder relative overflow-hidden">
@@ -396,6 +448,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background-color:#06080D;color:#
             ? `<img src="${thumb}" alt="${esc(v.title)}" class="w-full h-full object-cover">
                <div class="absolute inset-0 flex items-center justify-center bg-black/25"><i class="fa-brands fa-youtube text-4xl text-white drop-shadow-lg"></i></div>`
             : `<i class="fa-brands fa-youtube text-5xl text-red-500/70"></i>`}
+          ${playlist ? `<span class="absolute top-2 right-2 bg-black/70 text-white text-[10px] font-bold px-2 py-1 rounded-lg"><i class="fa-solid fa-list"></i> Playlist</span>` : ''}
         </div>
         <div class="p-4"><div class="text-sm font-bold text-white">${esc(v.title)}</div></div>
       </a>`;
@@ -406,6 +459,57 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background-color:#06080D;color:#
         <i class="fa-brands fa-youtube"></i><span>Kanalimizga obuna bo'ling</span>
       </a>
     </div>
+  </div>
+</section>
+
+<section id="shorts" class="py-16 lg:py-24 border-b border-cardBorder grid-cyber-pattern">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center max-w-2xl mx-auto mb-12">
+      <span class="section-label"><i class="fa-solid fa-mobile-screen-button"></i> YOUTUBE SHORTS</span>
+      <h2 class="text-2xl sm:text-4xl font-black text-white mt-2">Qisqa Shorts Videolarimiz</h2>
+      <p class="text-slate-400 text-sm mt-3">Tezkor va qisqa formatdagi foydali savdo darslari</p>
+    </div>
+    ${(c.shorts && c.shorts.length) ? `
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
+      ${c.shorts.map(v => {
+        const thumb = v.thumbnail || ytThumbnail(v.url);
+        return `
+      <a href="${esc(v.url)}" target="_blank" class="glass-card glass-card-hover rounded-2xl overflow-hidden border border-cardBorder block">
+        <div class="aspect-[9/16] bg-darkBg/90 flex items-center justify-center border-b border-cardBorder relative overflow-hidden">
+          ${thumb
+            ? `<img src="${thumb}" alt="${esc(v.title)}" class="w-full h-full object-cover">
+               <div class="absolute inset-0 flex items-center justify-center bg-black/25"><i class="fa-brands fa-youtube text-3xl text-white drop-shadow-lg"></i></div>`
+            : `<i class="fa-brands fa-youtube text-4xl text-red-500/70"></i>`}
+        </div>
+        <div class="p-2.5"><div class="text-xs font-bold text-white line-clamp-2">${esc(v.title)}</div></div>
+      </a>`;
+      }).join('')}
+    </div>` : `
+    <div class="text-center text-slate-500 text-sm glass-card rounded-2xl p-10 border border-cardBorder">Tez orada Shorts videolar qo'shiladi.</div>`}
+  </div>
+</section>
+
+<section id="articles" class="py-16 lg:py-24 border-b border-cardBorder">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center max-w-2xl mx-auto mb-12">
+      <span class="section-label"><i class="fa-solid fa-newspaper"></i> MAQOLALAR</span>
+      <h2 class="text-2xl sm:text-4xl font-black text-white mt-2">Foydali Maqolalarimiz</h2>
+      <p class="text-slate-400 text-sm mt-3">Savdo, SMC/ICT va halol moliya bo'yicha yozma maqolalar</p>
+    </div>
+    ${(c.articles && c.articles.length) ? `
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      ${c.articles.map(a => `
+      <div class="glass-card glass-card-hover rounded-2xl overflow-hidden border border-cardBorder flex flex-col">
+        <div class="aspect-video bg-darkBg/90 border-b border-cardBorder overflow-hidden flex items-center justify-center">
+          ${a.cover ? `<img src="${a.cover}" alt="${esc(a.title)}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-newspaper text-4xl text-emeraldGreen/50"></i>`}
+        </div>
+        <div class="p-5 flex flex-col flex-grow">
+          <div class="text-sm font-bold text-white">${esc(a.title)}</div>
+          <p class="text-xs text-slate-400 mt-2 flex-grow whitespace-pre-line">${esc(a.text)}</p>
+        </div>
+      </div>`).join('')}
+    </div>` : `
+    <div class="text-center text-slate-500 text-sm glass-card rounded-2xl p-10 border border-cardBorder">Tez orada maqolalar qo'shiladi.</div>`}
   </div>
 </section>
 
@@ -473,11 +577,14 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background-color:#06080D;color:#
     </div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       ${(c.pdfs || []).map(p => `
-      <div class="glass-card glass-card-hover rounded-2xl p-6 border border-cardBorder flex flex-col">
-        <i class="fa-solid fa-file-pdf text-3xl text-accentPurple mb-3"></i>
-        <div class="text-sm font-bold text-white">${esc(p.title)}</div>
-        <p class="text-xs text-slate-400 mt-2 flex-grow">${esc(p.desc)}</p>
-        ${p.url ? `<a href="${esc(p.url)}" target="_blank" class="mt-4 inline-flex items-center justify-center text-xs font-bold bg-accentPurple/15 text-accentPurple px-4 py-2.5 rounded-lg">Yuklab olish</a>` : `<span class="mt-4 inline-flex items-center justify-center text-xs font-bold bg-cardBorder/40 text-slate-500 px-4 py-2.5 rounded-lg">Tez orada</span>`}
+      <div class="glass-card glass-card-hover rounded-2xl overflow-hidden border border-cardBorder flex flex-col">
+        ${p.cover ? `<div class="aspect-video bg-darkBg/90 border-b border-cardBorder overflow-hidden"><img src="${p.cover}" alt="${esc(p.title)}" class="w-full h-full object-cover"></div>` : ''}
+        <div class="p-6 flex flex-col flex-grow">
+          ${!p.cover ? `<i class="fa-solid fa-file-pdf text-3xl text-accentPurple mb-3"></i>` : ''}
+          <div class="text-sm font-bold text-white">${esc(p.title)}</div>
+          <p class="text-xs text-slate-400 mt-2 flex-grow">${esc(p.desc)}</p>
+          ${p.url ? `<a href="${esc(p.url)}" target="_blank" class="mt-4 inline-flex items-center justify-center text-xs font-bold bg-accentPurple/15 text-accentPurple px-4 py-2.5 rounded-lg">Yuklab olish</a>` : `<span class="mt-4 inline-flex items-center justify-center text-xs font-bold bg-cardBorder/40 text-slate-500 px-4 py-2.5 rounded-lg">Tez orada</span>`}
+        </div>
       </div>`).join('')}
     </div>
   </div>
@@ -512,9 +619,14 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background-color:#06080D;color:#
         </div>
       </div>
       <div class="glass-card rounded-3xl p-4 sm:p-6 border border-goldAccent/20">
-        <div class="flex items-center gap-2 mb-4 px-2">
-          <i class="fa-solid fa-calendar-days text-goldAccent"></i>
-          <h3 class="text-sm font-bold text-white uppercase tracking-wide">Iqtisodiy Kalendar (Forex Factory uslubida)</h3>
+        <div class="flex items-center justify-between gap-2 mb-4 px-2">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-calendar-days text-goldAccent"></i>
+            <h3 class="text-sm font-bold text-white uppercase tracking-wide">Iqtisodiy Kalendar</h3>
+          </div>
+          <a href="https://www.forexfactory.com/calendar" target="_blank" class="text-[11px] font-bold text-goldAccent hover:text-white flex items-center gap-1">
+            ForexFactory'da ko'rish <i class="fa-solid fa-arrow-up-right-from-square"></i>
+          </a>
         </div>
         <div class="tradingview-widget-container" style="height:520px">
           <div class="tradingview-widget-container__widget"></div>
@@ -536,8 +648,24 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background-color:#06080D;color:#
 </section>
 
 <footer class="bg-cardBg border-t border-cardBorder py-10">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs text-slate-500">
-    &copy; 2026 TOP MUSLIM TRADERS ACADEMY. Barcha huquqlar himoyalangan.
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-wrap items-center justify-center gap-3 mb-6">
+      <a href="${esc(c.telegramMain)}" target="_blank" class="flex items-center gap-2 bg-goldAccent/10 border border-goldAccent/40 text-goldAccent text-xs font-bold px-4 py-2.5 rounded-xl">
+        <i class="fa-brands fa-telegram"></i> Asosiy Kanal @${esc(tgMainHandle)}
+      </a>
+      <a href="${esc(c.telegramChannel)}" target="_blank" class="flex items-center gap-2 bg-accentBlue/10 border border-accentBlue/30 text-accentBlue text-xs font-bold px-4 py-2.5 rounded-xl">
+        <i class="fa-brands fa-telegram"></i> Scalp Kanal
+      </a>
+      <a href="${esc(c.instagram)}" target="_blank" class="flex items-center gap-2 bg-instaPink/10 border border-instaPink/30 text-instaPink text-xs font-bold px-4 py-2.5 rounded-xl">
+        <i class="fa-brands fa-instagram"></i> Instagram
+      </a>
+      <a href="${esc(c.youtubeChannel)}" target="_blank" class="flex items-center gap-2 bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-bold px-4 py-2.5 rounded-xl">
+        <i class="fa-brands fa-youtube"></i> YouTube
+      </a>
+    </div>
+    <div class="text-center text-xs text-slate-500">
+      &copy; 2026 TOP MUSLIM TRADERS ACADEMY. Barcha huquqlar himoyalangan.
+    </div>
   </div>
 </footer>
 
@@ -646,6 +774,8 @@ function adminPageHtml(c, message) {
     <button type="button" data-tab="main" class="tab-btn active bg-slate-800 px-4 py-2 rounded-lg text-xs font-bold">Asosiy Sahifa</button>
     <button type="button" data-tab="links" class="tab-btn bg-slate-800 px-4 py-2 rounded-lg text-xs font-bold">Havolalar & Rasmlar</button>
     <button type="button" data-tab="video" class="tab-btn bg-slate-800 px-4 py-2 rounded-lg text-xs font-bold">Video Darslar</button>
+    <button type="button" data-tab="shorts" class="tab-btn bg-slate-800 px-4 py-2 rounded-lg text-xs font-bold">Shorts</button>
+    <button type="button" data-tab="articles" class="tab-btn bg-slate-800 px-4 py-2 rounded-lg text-xs font-bold">Maqolalar</button>
     <button type="button" data-tab="halal" class="tab-btn bg-slate-800 px-4 py-2 rounded-lg text-xs font-bold">Kripto Halolmi?</button>
     <button type="button" data-tab="pdf" class="tab-btn bg-slate-800 px-4 py-2 rounded-lg text-xs font-bold">PDF Kutubxona</button>
   </div>
@@ -667,10 +797,12 @@ function adminPageHtml(c, message) {
 
     <div class="tab-panel space-y-4 bg-slate-900 border border-slate-800 p-6 rounded-2xl" data-panel="links">
       <h2 class="font-bold text-yellow-500">Ijtimoiy tarmoq havolalari</h2>
+      ${field('Asosiy Telegram Kanal havolasi', 'telegramMain', c.telegramMain)}
       ${field('Telegram Bot havolasi', 'telegramBot', c.telegramBot)}
-      ${field('Telegram Kanal havolasi', 'telegramChannel', c.telegramChannel)}
+      ${field('Scalp Telegram Kanal havolasi', 'telegramChannel', c.telegramChannel)}
       ${field('Telegram Natijalar havolasi', 'telegramResults', c.telegramResults)}
       ${field('Instagram havolasi', 'instagram', c.instagram)}
+      ${field('YouTube kanal havolasi', 'youtubeChannel', c.youtubeChannel)}
       <h2 class="font-bold text-yellow-500 pt-2">Rasmlar</h2>
       <div><label class="text-xs text-slate-400">Logo rasmi (ixtiyoriy)</label>
         <input type="file" id="logoFile" accept="image/*" class="w-full text-sm mt-1">
@@ -681,10 +813,24 @@ function adminPageHtml(c, message) {
     </div>
 
     <div class="tab-panel space-y-4 bg-slate-900 border border-slate-800 p-6 rounded-2xl" data-panel="video">
-      <h2 class="font-bold text-yellow-500">YouTube video darslar</h2>
-      ${field('YouTube kanal havolasi', 'youtubeChannel', c.youtubeChannel)}
+      <h2 class="font-bold text-yellow-500">YouTube video darslar / playlistlar</h2>
+      <p class="text-xs text-slate-500">Video havolasi o'rniga playlist havolasini ham qo'yish mumkin (masalan youtube.com/playlist?list=...). Playlist uchun avtomatik ablоshka topilmaydi — shu sabab pastdagi "Ablоshka rasmi" maydoniga birinchi videoning skrinshotini o'zingiz yuklashingiz mumkin.</p>
       <div id="videoList" class="space-y-3 pt-2"></div>
-      <button type="button" onclick="addVideoRow()" class="w-full border-2 border-dashed border-slate-700 hover:border-yellow-500 text-slate-400 hover:text-yellow-500 transition py-3 rounded-xl text-sm font-bold">+ Yangi video qo'shish</button>
+      <button type="button" onclick="addVideoRow()" class="w-full border-2 border-dashed border-slate-700 hover:border-yellow-500 text-slate-400 hover:text-yellow-500 transition py-3 rounded-xl text-sm font-bold">+ Yangi video / playlist qo'shish</button>
+    </div>
+
+    <div class="tab-panel space-y-4 bg-slate-900 border border-slate-800 p-6 rounded-2xl" data-panel="shorts">
+      <h2 class="font-bold text-yellow-500">YouTube Shorts</h2>
+      <p class="text-xs text-slate-500">Alohida Shorts video yoki Shorts playlist havolasini qo'shing.</p>
+      <div id="shortsList" class="space-y-3 pt-2"></div>
+      <button type="button" onclick="addShortsRow()" class="w-full border-2 border-dashed border-slate-700 hover:border-yellow-500 text-slate-400 hover:text-yellow-500 transition py-3 rounded-xl text-sm font-bold">+ Yangi Shorts qo'shish</button>
+    </div>
+
+    <div class="tab-panel space-y-4 bg-slate-900 border border-slate-800 p-6 rounded-2xl" data-panel="articles">
+      <h2 class="font-bold text-yellow-500">Maqolalar</h2>
+      <p class="text-xs text-slate-500">Har bir maqola uchun sarlavha, matn va rasm (ixtiyoriy) qo'shing. Maqolalar bo'limi kompyuter va telefon uchun avtomatik moslashadi.</p>
+      <div id="articlesList" class="space-y-3 pt-2"></div>
+      <button type="button" onclick="addArticleRow()" class="w-full border-2 border-dashed border-slate-700 hover:border-yellow-500 text-slate-400 hover:text-yellow-500 transition py-3 rounded-xl text-sm font-bold">+ Yangi maqola qo'shish</button>
     </div>
 
     <div class="tab-panel space-y-4 bg-slate-900 border border-slate-800 p-6 rounded-2xl" data-panel="halal">
@@ -726,36 +872,134 @@ function fileToBase64(input, hiddenId) {
 fileToBase64(document.getElementById('logoFile'), 'logoImage');
 fileToBase64(document.getElementById('heroFile'), 'heroImage');
 
+function fileToBase64Dynamic(input, callback) {
+  input.addEventListener('change', () => {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => callback(reader.result);
+    reader.readAsDataURL(file);
+  });
+}
+
 // ---- Dinamik Video ro'yxati ----
 const existingVideos = ${JSON.stringify(c.videos || [])};
 function addVideoRow(video) {
-  video = video || { title: '', url: '' };
+  video = video || { title: '', url: '', thumbnail: '' };
   const wrap = document.createElement('div');
-  wrap.className = 'video-row flex gap-2 items-start bg-slate-800/60 p-3 rounded-xl';
+  wrap.className = 'video-row flex gap-3 items-start bg-slate-800/60 p-3 rounded-xl';
+  const thumbId = 'vthumb_' + Math.random().toString(36).slice(2);
   wrap.innerHTML =
+    '<div class="w-20 h-14 flex-shrink-0 rounded-lg overflow-hidden bg-slate-900 border border-slate-700 flex items-center justify-center">' +
+      '<img class="v-thumb-preview w-full h-full object-cover ' + (video.thumbnail ? '' : 'hidden') + '" src="' + (video.thumbnail || '') + '">' +
+      '<i class="v-thumb-icon text-slate-600 text-lg ' + (video.thumbnail ? 'hidden' : '') + '">▶</i>' +
+    '</div>' +
     '<div class="flex-grow space-y-2">' +
       '<input class="v-title w-full p-2.5 rounded-lg bg-slate-800 border border-slate-700" placeholder="Video sarlavhasi" value="' + video.title.replace(/"/g,'&quot;') + '">' +
-      '<input class="v-url w-full p-2.5 rounded-lg bg-slate-800 border border-slate-700" placeholder="Video havolasi (YouTube link)" value="' + video.url.replace(/"/g,'&quot;') + '">' +
+      '<input class="v-url w-full p-2.5 rounded-lg bg-slate-800 border border-slate-700" placeholder="Video yoki Playlist havolasi (YouTube link)" value="' + video.url.replace(/"/g,'&quot;') + '">' +
+      '<input type="hidden" class="v-thumb" value="' + (video.thumbnail || '').replace(/"/g,'&quot;') + '">' +
+      '<label class="block text-[11px] text-slate-500">Ablоshka rasmi (ixtiyoriy, playlist uchun tavsiya etiladi)</label>' +
+      '<input type="file" accept="image/*" class="v-thumb-file w-full text-xs">' +
     '</div>' +
     '<button type="button" onclick="this.parentElement.remove()" class="bg-red-600 hover:bg-red-500 transition text-white text-xs font-bold px-3 py-2 rounded-lg mt-1">O\\'chirish</button>';
   document.getElementById('videoList').appendChild(wrap);
+  const fileInput = wrap.querySelector('.v-thumb-file');
+  fileToBase64Dynamic(fileInput, (dataUrl) => {
+    wrap.querySelector('.v-thumb').value = dataUrl;
+    const preview = wrap.querySelector('.v-thumb-preview');
+    preview.src = dataUrl; preview.classList.remove('hidden');
+    wrap.querySelector('.v-thumb-icon').classList.add('hidden');
+  });
 }
 existingVideos.forEach(addVideoRow);
+
+// ---- Dinamik Shorts ro'yxati ----
+const existingShorts = ${JSON.stringify(c.shorts || [])};
+function addShortsRow(video) {
+  video = video || { title: '', url: '', thumbnail: '' };
+  const wrap = document.createElement('div');
+  wrap.className = 'shorts-row flex gap-3 items-start bg-slate-800/60 p-3 rounded-xl';
+  wrap.innerHTML =
+    '<div class="w-12 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-slate-900 border border-slate-700 flex items-center justify-center">' +
+      '<img class="s-thumb-preview w-full h-full object-cover ' + (video.thumbnail ? '' : 'hidden') + '" src="' + (video.thumbnail || '') + '">' +
+      '<i class="s-thumb-icon text-slate-600 text-lg ' + (video.thumbnail ? 'hidden' : '') + '">▶</i>' +
+    '</div>' +
+    '<div class="flex-grow space-y-2">' +
+      '<input class="s-title w-full p-2.5 rounded-lg bg-slate-800 border border-slate-700" placeholder="Shorts sarlavhasi" value="' + video.title.replace(/"/g,'&quot;') + '">' +
+      '<input class="s-url w-full p-2.5 rounded-lg bg-slate-800 border border-slate-700" placeholder="Shorts video yoki playlist havolasi" value="' + video.url.replace(/"/g,'&quot;') + '">' +
+      '<input type="hidden" class="s-thumb" value="' + (video.thumbnail || '').replace(/"/g,'&quot;') + '">' +
+      '<input type="file" accept="image/*" class="s-thumb-file w-full text-xs">' +
+    '</div>' +
+    '<button type="button" onclick="this.parentElement.remove()" class="bg-red-600 hover:bg-red-500 transition text-white text-xs font-bold px-3 py-2 rounded-lg mt-1">O\\'chirish</button>';
+  document.getElementById('shortsList').appendChild(wrap);
+  const fileInput = wrap.querySelector('.s-thumb-file');
+  fileToBase64Dynamic(fileInput, (dataUrl) => {
+    wrap.querySelector('.s-thumb').value = dataUrl;
+    const preview = wrap.querySelector('.s-thumb-preview');
+    preview.src = dataUrl; preview.classList.remove('hidden');
+    wrap.querySelector('.s-thumb-icon').classList.add('hidden');
+  });
+}
+existingShorts.forEach(addShortsRow);
+
+// ---- Dinamik Maqolalar ro'yxati ----
+const existingArticles = ${JSON.stringify(c.articles || [])};
+function addArticleRow(article) {
+  article = article || { title: '', text: '', cover: '' };
+  const wrap = document.createElement('div');
+  wrap.className = 'article-row flex gap-3 items-start bg-slate-800/60 p-3 rounded-xl';
+  wrap.innerHTML =
+    '<div class="w-20 h-14 flex-shrink-0 rounded-lg overflow-hidden bg-slate-900 border border-slate-700 flex items-center justify-center">' +
+      '<img class="a-cover-preview w-full h-full object-cover ' + (article.cover ? '' : 'hidden') + '" src="' + (article.cover || '') + '">' +
+      '<i class="a-cover-icon text-slate-600 text-lg ' + (article.cover ? 'hidden' : '') + '">🖼</i>' +
+    '</div>' +
+    '<div class="flex-grow space-y-2">' +
+      '<input class="a-title w-full p-2.5 rounded-lg bg-slate-800 border border-slate-700" placeholder="Maqola sarlavhasi" value="' + article.title.replace(/"/g,'&quot;') + '">' +
+      '<textarea class="a-text w-full p-2.5 rounded-lg bg-slate-800 border border-slate-700" rows="3" placeholder="Maqola matni">' + article.text.replace(/</g,'&lt;') + '</textarea>' +
+      '<input type="hidden" class="a-cover" value="' + (article.cover || '').replace(/"/g,'&quot;') + '">' +
+      '<label class="block text-[11px] text-slate-500">Maqola rasmi (ixtiyoriy)</label>' +
+      '<input type="file" accept="image/*" class="a-cover-file w-full text-xs">' +
+    '</div>' +
+    '<button type="button" onclick="this.parentElement.remove()" class="bg-red-600 hover:bg-red-500 transition text-white text-xs font-bold px-3 py-2 rounded-lg mt-1">O\\'chirish</button>';
+  document.getElementById('articlesList').appendChild(wrap);
+  const fileInput = wrap.querySelector('.a-cover-file');
+  fileToBase64Dynamic(fileInput, (dataUrl) => {
+    wrap.querySelector('.a-cover').value = dataUrl;
+    const preview = wrap.querySelector('.a-cover-preview');
+    preview.src = dataUrl; preview.classList.remove('hidden');
+    wrap.querySelector('.a-cover-icon').classList.add('hidden');
+  });
+}
+existingArticles.forEach(addArticleRow);
 
 // ---- Dinamik PDF ro'yxati ----
 const existingPdfs = ${JSON.stringify(c.pdfs || [])};
 function addPdfRow(pdf) {
-  pdf = pdf || { title: '', desc: '', url: '' };
+  pdf = pdf || { title: '', desc: '', url: '', cover: '' };
   const wrap = document.createElement('div');
-  wrap.className = 'pdf-row flex gap-2 items-start bg-slate-800/60 p-3 rounded-xl';
+  wrap.className = 'pdf-row flex gap-3 items-start bg-slate-800/60 p-3 rounded-xl';
   wrap.innerHTML =
+    '<div class="w-20 h-14 flex-shrink-0 rounded-lg overflow-hidden bg-slate-900 border border-slate-700 flex items-center justify-center">' +
+      '<img class="p-cover-preview w-full h-full object-cover ' + (pdf.cover ? '' : 'hidden') + '" src="' + (pdf.cover || '') + '">' +
+      '<i class="p-cover-icon text-slate-600 text-lg ' + (pdf.cover ? 'hidden' : '') + '">🖼</i>' +
+    '</div>' +
     '<div class="flex-grow space-y-2">' +
       '<input class="p-title w-full p-2.5 rounded-lg bg-slate-800 border border-slate-700" placeholder="PDF sarlavhasi" value="' + pdf.title.replace(/"/g,'&quot;') + '">' +
       '<textarea class="p-desc w-full p-2.5 rounded-lg bg-slate-800 border border-slate-700" rows="2" placeholder="Qisqa tavsif">' + pdf.desc.replace(/</g,'&lt;') + '</textarea>' +
       '<input class="p-url w-full p-2.5 rounded-lg bg-slate-800 border border-slate-700" placeholder="PDF havolasi (bo\\'sh qoldirsa \\'Tez orada\\' chiqadi)" value="' + pdf.url.replace(/"/g,'&quot;') + '">' +
+      '<input type="hidden" class="p-cover" value="' + (pdf.cover || '').replace(/"/g,'&quot;') + '">' +
+      '<label class="block text-[11px] text-slate-500">Muqova rasmi (ixtiyoriy)</label>' +
+      '<input type="file" accept="image/*" class="p-cover-file w-full text-xs">' +
     '</div>' +
     '<button type="button" onclick="this.parentElement.remove()" class="bg-red-600 hover:bg-red-500 transition text-white text-xs font-bold px-3 py-2 rounded-lg mt-1">O\\'chirish</button>';
   document.getElementById('pdfList').appendChild(wrap);
+  const fileInput = wrap.querySelector('.p-cover-file');
+  fileToBase64Dynamic(fileInput, (dataUrl) => {
+    wrap.querySelector('.p-cover').value = dataUrl;
+    const preview = wrap.querySelector('.p-cover-preview');
+    preview.src = dataUrl; preview.classList.remove('hidden');
+    wrap.querySelector('.p-cover-icon').classList.add('hidden');
+  });
 }
 existingPdfs.forEach(addPdfRow);
 
@@ -767,13 +1011,27 @@ document.getElementById('editForm').addEventListener('submit', async (e) => {
 
   data.videos = Array.from(document.querySelectorAll('#videoList .video-row')).map(row => ({
     title: row.querySelector('.v-title').value.trim(),
-    url: row.querySelector('.v-url').value.trim()
+    url: row.querySelector('.v-url').value.trim(),
+    thumbnail: row.querySelector('.v-thumb').value.trim()
   })).filter(v => v.title || v.url);
+
+  data.shorts = Array.from(document.querySelectorAll('#shortsList .shorts-row')).map(row => ({
+    title: row.querySelector('.s-title').value.trim(),
+    url: row.querySelector('.s-url').value.trim(),
+    thumbnail: row.querySelector('.s-thumb').value.trim()
+  })).filter(v => v.title || v.url);
+
+  data.articles = Array.from(document.querySelectorAll('#articlesList .article-row')).map(row => ({
+    title: row.querySelector('.a-title').value.trim(),
+    text: row.querySelector('.a-text').value.trim(),
+    cover: row.querySelector('.a-cover').value.trim()
+  })).filter(a => a.title || a.text);
 
   data.pdfs = Array.from(document.querySelectorAll('#pdfList .pdf-row')).map(row => ({
     title: row.querySelector('.p-title').value.trim(),
     desc: row.querySelector('.p-desc').value.trim(),
-    url: row.querySelector('.p-url').value.trim()
+    url: row.querySelector('.p-url').value.trim(),
+    cover: row.querySelector('.p-cover').value.trim()
   })).filter(p => p.title || p.desc || p.url);
 
   const res = await fetch('/admin/save', {
